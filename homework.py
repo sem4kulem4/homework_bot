@@ -26,7 +26,7 @@ HOMEWORK_STATUSES = {
 
 
 def send_message(bot, message):
-    """"Функция отправляет сообщение через telegram-бота"""
+    """"Функция отправляет сообщение через telegram-бота."""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logging.info('Сообщение отправлено успешно!')
@@ -37,7 +37,7 @@ def send_message(bot, message):
 
 
 def get_api_answer(current_timestamp):
-    """"Функция получает ответ от API для заданного времени"""
+    """"Функция получает ответ от API для заданного времени."""
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     homework_statuses = requests.get(ENDPOINT, headers=HEADERS, params=params)
@@ -49,7 +49,7 @@ def get_api_answer(current_timestamp):
 
 
 def check_response(response):
-    """"Функция проверяет полученный ответ от API на корректность"""
+    """"Функция проверяет полученный ответ от API на корректность."""
     if not isinstance(response, dict):
         logging.error('API не выдал словарь')
         raise TypeError('API не выдал словарь')
@@ -66,7 +66,7 @@ def check_response(response):
 
 
 def parse_status(homework):
-    """"Функция парсит полученный от API ответ"""
+    """"Функция парсит полученный от API ответ."""
     homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
     verdict = HOMEWORK_STATUSES[homework_status]
@@ -74,7 +74,7 @@ def parse_status(homework):
 
 
 def check_tokens():
-    """"Функция проверяет наличие переменных окружения"""
+    """"Функция проверяет наличие переменных окружения."""
     if PRACTICUM_TOKEN and TELEGRAM_TOKEN and TELEGRAM_CHAT_ID:
         return True
     logging.critical('Один из токенов недоступен')
