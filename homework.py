@@ -31,10 +31,12 @@ logger = app_logger.get_logger(__name__)
 
 
 class APIHomeworkError(Exception):
+    """Исключение, если API по какой-либо причине не выдал список ДЗ."""
     pass
 
 
 class EmptyDictError(Exception):
+    """Исключение, если в ответе API список ДЗ оказалася пустым."""
     pass
 
 
@@ -54,7 +56,11 @@ def get_api_answer(current_timestamp):
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     try:
-        homework_statuses = requests.get(ENDPOINT, headers=HEADERS, params=params)
+        homework_statuses = requests.get(
+            ENDPOINT,
+            headers=HEADERS,
+            params=params
+        )
     except requests.ConnectionError:
         logger.error('URL недоступен')
     if homework_statuses.status_code == http.HTTPStatus.OK:
