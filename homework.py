@@ -32,11 +32,13 @@ logger = app_logger.get_logger(__name__)
 
 class APIHomeworkError(Exception):
     """Исключение, если API по какой-либо причине не выдал список ДЗ."""
+
     pass
 
 
 class EmptyDictError(Exception):
     """Исключение, если в ответе API список ДЗ оказалася пустым."""
+
     pass
 
 
