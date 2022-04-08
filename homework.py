@@ -1,13 +1,12 @@
+import json
 import http
 import logging
 import os
 import requests
-import json
 import time
 
-import telegram
 from dotenv import load_dotenv
-from telegram import Bot
+from telegram import Bot, TelegramError
 
 import app_logger
 
@@ -45,7 +44,7 @@ def send_message(bot, message):
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logger.info('Сообщение отправлено успешно!')
 
-    except telegram.TelegramError as error:
+    except TelegramError as error:
         logger.error(f'Сообщение не отправлено! {error}')
         raise Exception(f'Сообщение не отправлено! {error}')
 
