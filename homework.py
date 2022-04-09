@@ -60,7 +60,9 @@ def get_api_answer(current_timestamp):
             return homework_statuses
         except json.decoder.JSONDecodeError as error:
             logger.error(f'Ответ API не преобразуется в JSON. {error}')
-            raise json.decoder.JSONDecodeError(f'Ответ API не преобразуется в JSON. {error}')
+            raise json.decoder.JSONDecodeError(
+                f'Ответ API не преобразуется в JSON. {error}'
+            )
     else:
         logger.error('Недоступен ENDPOINT')
         raise exceptions.APINotAvailableError('Код ответа отличен от 200')
