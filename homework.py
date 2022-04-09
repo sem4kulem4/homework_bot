@@ -2,6 +2,7 @@ import http
 import json
 import logging
 import os
+import sys
 import time
 
 import requests
@@ -106,7 +107,7 @@ def check_tokens():
     if PRACTICUM_TOKEN and TELEGRAM_TOKEN and TELEGRAM_CHAT_ID:
         return True
     logger.critical('Один из токенов недоступен')
-    raise exceptions.TokensUnavailableError('Один из токенов недоступен')
+    return False
 
 
 def main():
@@ -117,7 +118,10 @@ def main():
 
     while True:
         try:
-            check_tokens()
+            if check_tokens():
+                pass
+            else:
+                sys.exit()
             response = get_api_answer(current_timestamp)
             last_hw = check_response(response)[0]
             if last_hw.get('status') == cached_status:
