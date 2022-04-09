@@ -1,15 +1,15 @@
-import json
 import http
+import json
 import logging
 import os
-import requests
 import time
 
+import requests
 from dotenv import load_dotenv
 from telegram import Bot, TelegramError
 
 import app_logger
-
+import exceptions
 
 load_dotenv()
 
@@ -30,18 +30,6 @@ HOMEWORK_STATUSES = {
 logger = app_logger.get_logger(__name__)
 
 
-class APIHomeworkError(Exception):
-    """Исключение, если API по какой-либо причине не выдал список ДЗ."""
-
-    pass
-
-
-class EmptyDictError(Exception):
-    """Исключение, если в ответе API список ДЗ оказалася пустым."""
-
-    pass
-
-
 def send_message(bot, message):
     """Функция отправляет сообщение через telegram-бота."""
     try:
@@ -50,7 +38,7 @@ def send_message(bot, message):
 
     except TelegramError as error:
         logger.error(f'Сообщение не отправлено! {error}')
-        raise Exception(f'Сообщение не отправлено! {error}')
+        raise TelegramError(f'Сообщение не отправлено! {error}')
 
 
 def get_api_answer(current_timestamp):
@@ -65,16 +53,17 @@ def get_api_answer(current_timestamp):
         )
     except requests.ConnectionError:
         logger.error('URL недоступен')
+        raise ConnectionError('URL недоступен')
     if homework_statuses.status_code == http.HTTPStatus.OK:
         try:
             homework_statuses = homework_statuses.json()
             return homework_statuses
         except json.decoder.JSONDecodeError as error:
             logger.error(f'Ответ API не преобразуется в JSON. {error}')
-            raise Exception(f'Ответ API не преобразуется в JSON. {error}')
+            raise json.decoder.JSONDecodeError(f'Ответ API не преобразуется в JSON. {error}')
     else:
         logger.error('Недоступен ENDPOINT')
-        raise Exception('Код ответа отличен от 200')
+        raise exceptions.APINotAvailableError('Код ответа отличен от 200')
 
 
 def check_response(response):
@@ -84,11 +73,11 @@ def check_response(response):
         raise TypeError('API не выдал словарь')
     if 'homeworks' not in response:
         logger.error('API не выдал список домашних работ')
-        raise APIHomeworkError('API не выдал список домашних работ')
+        raise exceptions.APIHomeworkError('API не выдал список домашних работ')
     homeworks = response.get('homeworks')
     if len(homeworks) == 0:
         logger.error('API выдал пустой словарь')
-        raise EmptyDictError('API выдал пустой словарь')
+        raise exceptions.EmptyDictError('API выдал пустой словарь')
     if not isinstance(homeworks, list):
         logger.error('Получен элемент отличный от списка')
         raise TypeError('Получен элемент отличный от списка')
@@ -97,11 +86,14 @@ def check_response(response):
 
 def parse_status(homework):
     """Функция парсит полученный от API ответ."""
-    print(homework)
     if not isinstance(homework, dict):
         logger.error('Данные о ДЗ не в виде словаря!')
         raise Exception('Данные о ДЗ не в виде словаря!')
-    homework_name = homework.get('homework_name')
+    try:
+        homework_name = homework.get('homework_name')
+    except KeyError:
+        logger.error('Словарь с ДЗ не содержит ключа "homework_name"!')
+        raise KeyError('Словарь с ДЗ не содержит ключа "homework_name"!')
     homework_status = homework.get('status')
     verdict = HOMEWORK_STATUSES[homework_status]
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
@@ -112,7 +104,7 @@ def check_tokens():
     if PRACTICUM_TOKEN and TELEGRAM_TOKEN and TELEGRAM_CHAT_ID:
         return True
     logger.critical('Один из токенов недоступен')
-    return False
+    raise exceptions.TokensUnavailableError('Один из токенов недоступен')
 
 
 def main():
@@ -128,7 +120,6 @@ def main():
             last_hw = check_response(response)[0]
             if last_hw.get('status') == cached_status:
                 logging.debug('Статус ДЗ не изменился')
-                print('Статус ДЗ не изменился')
                 current_timestamp = int(time.time())
                 time.sleep(RETRY_TIME)
             else:
