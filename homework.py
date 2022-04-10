@@ -93,7 +93,7 @@ def parse_status(homework):
         logger.error('Данные о ДЗ не в виде словаря!')
         raise Exception('Данные о ДЗ не в виде словаря!')
     try:
-        homework_name = homework.get('homework_name')
+        homework_name = homework['homework_name']
     except KeyError:
         logger.error('Словарь с ДЗ не содержит ключа "homework_name"!')
         raise KeyError('Словарь с ДЗ не содержит ключа "homework_name"!')
